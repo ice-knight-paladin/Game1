@@ -4,7 +4,7 @@ import schedule
 import time
 
 config = {
-    'token': 'OTYwOTEzMTkzOTM5NjUyNjg4.YkxWJg.OOxJ6IaV6SyjxNn-IeIU5607mf8',
+    'token': '',
     'prefix': '!',
 }
 
