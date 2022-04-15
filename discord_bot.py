@@ -54,18 +54,28 @@ async def tictoe(ctx):
                     return
                 m = list(map(int, str(message.content).strip().split()))
                 try:
-                    if m[1] < len(pol[0]) and m[0] < len(pol) and pol[m[1]][m[0]] != 0:
+                    if m[1] <= len(pol[0]) and m[0] <= len(pol) and pol[m[1]-1][m[0]-1] == 0:
                         with open("input.txt", "r") as f:
                             if f.readline() == "1":
-                                pol[m[1]][m[0]] = "1"
+                                pol[m[1]-1][m[0]-1] = "1"
                         with open("input.txt", "r") as f:
                             if f.readline() == "2":
-                                pol[m[1]][m[0]] = "2"
+                                pol[m[1]-1][m[0]-1] = "2"
                         await channel.send("Your turn")
-                        with open("input.txt", "w") as f:
-                            f.close()
-                        with open("input.txt", "w") as f:
-                            f.write("2")
+
+                        with open("input.txt") as f:
+                            if f.readline() == "2":
+                                f.close()
+                                d = True
+                            else:
+                                f.close()
+                                d = False
+                        if d:
+                            with open("input.txt", "w") as f:
+                                f.write("1")
+                        else:
+                            with open("input.txt", "w") as f:
+                                f.write("2")
                         for i in range(3):
                             if pol[i][0] == pol[i][1] == pol[i][2] == "1" or pol[i][0] == pol[i][1] == pol[i][2] == "2":
                                 await channel.send("Win")
@@ -79,10 +89,8 @@ async def tictoe(ctx):
                         if pol[2][0] == pol[1][1] == pol[0][2] == "1" or pol[2][0] == pol[1][1] == pol[0][2] == "2":
                             await channel.send("Win")
                             return
-                    print(pol)
-
                 except ValueError:
-                    await channel.send("{number} {number}")
+                    pass
             except ValueError:
                 pass
 
