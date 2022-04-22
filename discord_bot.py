@@ -1,7 +1,15 @@
+import logging
+
 import discord
 from discord.ext import commands, tasks
 import schedule
-import time
+import wikipedia
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 config = {
     'token': '',
@@ -11,27 +19,20 @@ config = {
 bot = commands.Bot(command_prefix=config['prefix'])
 
 
+@bot.event
+async def on_ready():
+    print(f'{bot.user} подключен к Discord!')
+    for guild in bot.guilds:
+        print(
+            f'{bot.user} подключились к чату:\n'
+            f'{guild.name}(id: {guild.id})'
+        )
+
+
 @bot.command()
 async def kick(ctx, member: discord.Member, reason):
     await ctx.send("Изгоняем участника {0} по причине: {1}".format(member, reason))
     await member.ban(reason=f'{ctx.author} Выгнал {member}')
-
-
-@bot.command()
-async def set_timer(ctx, a):
-    await ctx.send(f"Через {a} минут")
-
-    @tasks.loop(minutes=int(a))
-    async def yourname():
-        await ctx.send("TIME")
-        await bot.wait_until_ready()
-        yourname.stop()
-
-    @yourname.before_loop
-    async def yourname2():
-        await bot.wait_until_ready()
-
-    yourname.start()
 
 
 @bot.command()
@@ -54,13 +55,15 @@ async def tictoe(ctx):
                     return
                 m = list(map(int, str(message.content).strip().split()))
                 try:
-                    if m[1] <= len(pol[0]) and m[0] <= len(pol) and pol[m[1]-1][m[0]-1] == 0:
+                    if m[1] <= len(pol[0]) and m[0] <= len(pol) and pol[m[1] - 1][m[0] - 1] == 0:
                         with open("input.txt", "r") as f:
                             if f.readline() == "1":
-                                pol[m[1]-1][m[0]-1] = "1"
+                                pol[m[1] - 1][m[0] - 1] = "1"
                         with open("input.txt", "r") as f:
                             if f.readline() == "2":
-                                pol[m[1]-1][m[0]-1] = "2"
+                                pol[m[1] - 1][m[0] - 1] = "2"
+                        for i in pol:
+                            await channel.send(i)
                         await channel.send("Your turn")
 
                         with open("input.txt") as f:
@@ -90,12 +93,55 @@ async def tictoe(ctx):
                             await channel.send("Win")
                             return
                 except ValueError:
-                    pass
+                    await channel.send("Клетка занята")
             except ValueError:
                 pass
 
     except ValueError:
-        await ctx.send("!tictoe {number} {number} {number}")
+        pass
+
+
+@bot.command()
+async def example(ctx):
+    import requests
+    from bs4 import BeautifulSoup as b
+    from random import choice
+    URL = "https://www.matburo.ru/ex_tv.php?p1=tvklass"
+    r = requests.get(URL)
+    soup = b(r.text, 'html.parser')
+    a = [i.text for i in soup.find_all('p')]
+    a.remove(a[0])
+    await ctx.send(choice(a))
+
+
+@bot.command(command="help")
+async def help_(ctx):
+    await ctx.send("!tictoe - игра в крестики-нолики\n"
+                   "!help - список команд\n"
+                   "!kick - удаляет членов сервера\n"
+                   "!wiki - отправляет {что это такое}/n"
+                   "!translat - переводит слова на язык, который вы укажите")
+
+
+@bot.command()
+async def wiki(ctx, message):
+    await ctx.send(wikipedia.summary(message))
+
+
+@bot.command()
+async def translat(ctx, message):
+    g = message
+    from translate import Translator
+
+    @bot.event
+    async def on_message(messag):
+        channel = messag.channel
+        translator = Translator(to_lang=g)
+        translation = translator.translate(messag.content)
+        if messag.author != bot.user:
+            await channel.send(translation)
+        if messag.author == bot.user:
+            return
 
 
 bot.run(config['token'])
