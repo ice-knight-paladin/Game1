@@ -1,4 +1,1 @@
-# Game1
-Цель: создать игру на подобие Geometry Dash
-
-Чтобы пройти уровень нужно будет прыгать через шипы.
+https://docs.google.com/presentation/d/1ymG9RIiRDKIXDvWXpFMpJ7RPmObbeCd1/edit?usp=sharing&ouid=109689570324964809359&rtpof=true&sd=true
